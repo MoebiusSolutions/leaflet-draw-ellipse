@@ -275,34 +275,18 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         // Move the rotate marker
         this._repositionRotateMarker();
     },
+    _computeBearing: function _computeBearing(fixedLatlng, latlng) {
+        var RAD_TO_DEG = 180 / Math.PI;
+        var pc = this._map.project(fixedLatlng);
+        var ph = this._map.project(latlng);
+        var v = [ph.x - pc.x, pc.y - ph.y];
+        var bearing = (180 - Math.atan2(v[1], v[0]) * RAD_TO_DEG) % 360;
+        return bearing || this._bearing;
+    },
     _rotate: function _rotate(latlng) {
-        var moveLatLng = this._moveMarker.getLatLng();
-        var point = this._map.project(latlng);
-        var movePoint = this._map.project(moveLatLng);
-        var xLatLng = this._map.unproject([point.x, movePoint.y]);
-        var radius = moveLatLng.distanceTo(latlng);
-        var xDelta = moveLatLng.distanceTo(xLatLng);
-
-        if (movePoint.y.toFixed(1) === point.y.toFixed(1)) {
-            var tilt = 0;
-            // Rotate the ellipse
-            this._shape.setTilt(tilt);
-        } else if (movePoint.x.toFixed(1) === point.x.toFixed(1)) {
-            var _tilt = 90;
-            // Rotate the ellipse
-            this._shape.setTilt(_tilt);
-        } else if (xDelta < radius) {
-            var _tilt2 = Math.acos(xDelta / radius) * (180 / Math.PI); //L.LatLng.RAD_TO_DEG;
-            if (point.x > movePoint.x) {
-                _tilt2 = 180 - _tilt2;
-            }
-            if (point.y > movePoint.y) {
-                _tilt2 = -1 * _tilt2;
-            }
-            // Rotate the ellipse
-            this._shape.setTilt(_tilt2);
-        }
-
+        var fixedLatLng = this._moveMarker.getLatLng();
+        var bearing = this._computeBearing(fixedLatLng, latlng);
+        this._shape.setTilt(bearing);
         // Move the resize marker
         this._repositionResizeMarkers();
 
@@ -370,7 +354,7 @@ L.drawLocal.draw.toolbar.buttons.ellipse = 'Draw a Ellipse';
 L.drawLocal.draw.handlers.ellipse = {
     tooltip: {
         start: 'Click and drag to draw ellipse.',
-        line: "Let up mouse click when ready."
+        line: 'Let up mouse click when ready.'
     },
     radius: 'Radius'
 };

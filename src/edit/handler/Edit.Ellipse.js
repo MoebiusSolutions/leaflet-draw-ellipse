@@ -16,7 +16,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         })
     },
 
-    _initMarkers() {
+    _initMarkers () {
         if (!this._markerGroup) {
             this._markerGroup = new L.LayerGroup()
         }
@@ -31,13 +31,13 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._createRotateMarker()
     },
 
-    _createMoveMarker() {
+    _createMoveMarker () {
         const center = this._shape.getLatLng()
 
         this._moveMarker = this._createMarker(center, this.options.moveIcon)
     },
 
-    _createResizeMarker() {
+    _createResizeMarker () {
         const center = this._shape.getLatLng(),
             resizemarkerPointX1 = this._getResizeMarkerPointX1(center),
             resizemarkerPointX2 = this._getResizeMarkerPointX2(center),
@@ -55,14 +55,14 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._resizeMarkers[3]._isX = false
     },
 
-    _createRotateMarker() {
+    _createRotateMarker () {
         const center = this._shape.getLatLng(),
             rotatemarkerPoint = this._getRotateMarkerPoint(center)
 
         this._rotateMarker = this._createMarker(rotatemarkerPoint, this.options.rotateIcon)
     },
 
-    _getResizeMarkerPointX1(latlng) {
+    _getResizeMarkerPointX1 (latlng) {
         const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
         const radius = this._shape._radiusX
         const xDelta = radius * Math.cos(tilt)
@@ -71,7 +71,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         return this._map.unproject([point.x + xDelta, point.y + yDelta])
     },
 
-    _getResizeMarkerPointX2(latlng) {
+    _getResizeMarkerPointX2 (latlng) {
         const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
         const radius = this._shape._radiusX
         const xDelta = radius * Math.cos(tilt)
@@ -80,7 +80,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         return this._map.unproject([point.x - xDelta, point.y - yDelta])
     },
 
-    _getResizeMarkerPointY1(latlng) {
+    _getResizeMarkerPointY1 (latlng) {
         const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
         const radius = this._shape._radiusY
         const xDelta = radius * Math.sin(tilt)
@@ -89,7 +89,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         return this._map.unproject([point.x - xDelta, point.y + yDelta])
     },
 
-    _getResizeMarkerPointY2(latlng) {
+    _getResizeMarkerPointY2 (latlng) {
         const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
         const radius = this._shape._radiusY
         const xDelta = radius * Math.sin(tilt)
@@ -98,7 +98,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         return this._map.unproject([point.x + xDelta, point.y - yDelta])
     },
 
-    _getRotateMarkerPoint(latlng) {
+    _getRotateMarkerPoint (latlng) {
         const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
         const radius = this._shape._radiusX + 20
         const xDelta = radius * Math.cos(tilt)
@@ -107,12 +107,12 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         return this._map.unproject([point.x - xDelta, point.y - yDelta])
     },
 
-    _onMarkerDragStart(e) {
+    _onMarkerDragStart (e) {
         L.Edit.SimpleShape.prototype._onMarkerDragStart.call(this, e)
         this._currentMarker = e.target
     },
 
-    _onMarkerDrag(e) {
+    _onMarkerDrag (e) {
         const marker = e.target,
             latlng = marker.getLatLng()
 
@@ -127,7 +127,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._shape.redraw()
     },
 
-    _move(latlng) {
+    _move (latlng) {
         // Move the ellipse
         this._shape.setLatLng(latlng)
 
@@ -138,35 +138,19 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._repositionRotateMarker()
     },
 
+    _computeBearing (fixedLatlng, latlng) {
+        const RAD_TO_DEG = 180 / Math.PI
+        const pc = this._map.project(fixedLatlng)
+        const ph = this._map.project(latlng)
+        const v = [ph.x - pc.x, pc.y - ph.y]
+        const bearing = (180 - Math.atan2(v[1], v[0]) * RAD_TO_DEG) % 360
+        return bearing || this._bearing
+    },
 
-    _rotate(latlng) {
-        const moveLatLng = this._moveMarker.getLatLng()
-        const point = this._map.project(latlng)
-        const movePoint = this._map.project(moveLatLng)
-        const xLatLng = this._map.unproject([point.x, movePoint.y])
-        const radius = moveLatLng.distanceTo(latlng)
-        const xDelta = moveLatLng.distanceTo(xLatLng)
-
-        if (movePoint.y.toFixed(1) === point.y.toFixed(1)) {
-            const tilt = 0
-            // Rotate the ellipse
-            this._shape.setTilt(tilt)
-        } else if (movePoint.x.toFixed(1) === point.x.toFixed(1)) {
-            const tilt = 90
-            // Rotate the ellipse
-            this._shape.setTilt(tilt)
-        } else if (xDelta < radius) {
-            let tilt = Math.acos(xDelta / radius) * (180 / Math.PI)//L.LatLng.RAD_TO_DEG;
-            if (point.x > movePoint.x) {
-                tilt = 180 - tilt
-            }
-            if (point.y > movePoint.y) {
-                tilt = -1 * tilt
-            }
-            // Rotate the ellipse
-            this._shape.setTilt(tilt)
-        }
-
+    _rotate (latlng) {
+        const fixedLatLng = this._moveMarker.getLatLng()
+        const bearing = this._computeBearing(fixedLatLng, latlng)
+        this._shape.setTilt(bearing)
         // Move the resize marker
         this._repositionResizeMarkers()
 
@@ -174,7 +158,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._repositionRotateMarker()
     },
 
-    _resize(latlng) {
+    _resize (latlng) {
         const moveLatLng = this._moveMarker.getLatLng()
         const radius = moveLatLng.distanceTo(latlng)
         if (this._currentMarker._isX) {
@@ -189,7 +173,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._repositionRotateMarker()
     },
 
-    _repositionResizeMarkers() {
+    _repositionResizeMarkers () {
         const latlng = this._moveMarker.getLatLng()
         const resizemarkerPointX1 = this._getResizeMarkerPointX1(latlng)
         const resizemarkerPointX2 = this._getResizeMarkerPointX2(latlng)
@@ -202,7 +186,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._resizeMarkers[3].setLatLng(resizemarkerPointY2)
     },
 
-    _repositionRotateMarker() {
+    _repositionRotateMarker () {
         const latlng = this._moveMarker.getLatLng()
         const rotatemarkerPoint = this._getRotateMarkerPoint(latlng)
 
