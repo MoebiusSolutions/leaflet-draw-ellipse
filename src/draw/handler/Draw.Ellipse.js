@@ -40,12 +40,12 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
     },
 
     _computeBearing (latlng) {
-        let pc, ph, v, bearing
-        pc = this._map.project(this._startLatLng)
-        ph = this._map.project(latlng)
-        v = [ph.x - pc.x, ph.y - pc.y]
-        bearing = (Math.atan2(v[0], -v[1]) * 180 / Math.PI) % 360
-        return (bearing || this._bearing)
+        const RAD_TO_DEG = 180 / Math.PI
+        const pc = this._map.project(this._startLatLng)
+        const ph = this._map.project(latlng)
+        const v = [ph.x - pc.x, pc.y - ph.y]
+        const bearing = (180 - Math.atan2(v[1], v[0]) * RAD_TO_DEG) % 360
+        return bearing || this._bearing
     },
 
     _drawShape (latlng) {

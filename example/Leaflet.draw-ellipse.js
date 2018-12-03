@@ -38,23 +38,19 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         L.Draw.Feature.prototype.initialize.call(this, map, options)
     },
     _computeBearing: function _computeBearing (latlng) {
-        let pc = void 0,
-            ph = void 0,
-            v = void 0,
-            bearing = void 0
-        pc = this._map.project(this._startLatLng)
-        ph = this._map.project(latlng)
-        v = [ph.x - pc.x, ph.y - pc.y]
-        bearing = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
+        const RAD_TO_DEG = 180 / Math.PI
+        const pc = this._map.project(this._startLatLng)
+        const ph = this._map.project(latlng)
+        const v = [ph.x - pc.x, pc.y - ph.y]
+        const bearing = (180 - Math.atan2(v[1], v[0]) * RAD_TO_DEG) % 360
         return bearing || this._bearing
     },
     _drawShape: function _drawShape (latlng) {
         let radius = void 0
         if (!this._shape) {
             this._radius = radius = Math.max(this._startLatLng.distanceTo(latlng), 10)
-            const bearing = this._computeBearing(latlng)
-            this._shape = L.ellipse(this._startLatLng, [radius, radius / 2], bearing, this.options.shapeOptions)
-            this._bearing = bearing
+            this._bearing = this._computeBearing(latlng)
+            this._shape = L.ellipse(this._startLatLng, [radius, radius / 2], this._bearing, this.options.shapeOptions)
             this._map.addLayer(this._shape)
         } else {
             this._bearing = this._computeBearing(latlng)
@@ -189,7 +185,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._moveMarker = this._createMarker(center, this.options.moveIcon)
     },
     _createResizeMarker: function _createResizeMarker () {
-        let center = this._shape.getLatLng(),
+        const center = this._shape.getLatLng(),
             resizemarkerPointX1 = this._getResizeMarkerPointX1(center),
             resizemarkerPointX2 = this._getResizeMarkerPointX2(center),
             resizemarkerPointY1 = this._getResizeMarkerPointY1(center),
@@ -206,7 +202,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._resizeMarkers[3]._isX = false
     },
     _createRotateMarker: function _createRotateMarker () {
-        let center = this._shape.getLatLng(),
+        const center = this._shape.getLatLng(),
             rotatemarkerPoint = this._getRotateMarkerPoint(center)
 
         this._rotateMarker = this._createMarker(rotatemarkerPoint, this.options.rotateIcon)
@@ -256,7 +252,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         this._currentMarker = e.target
     },
     _onMarkerDrag: function _onMarkerDrag (e) {
-        let marker = e.target,
+        const marker = e.target,
             latlng = marker.getLatLng()
 
         if (marker === this._moveMarker) {
