@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Leaflet Draw</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"
+        crossorigin="" />
+
+    <!--
+	<link rel="stylesheet" href="../Leaflet.draw/dist/leaflet.draw.css" />
+	<link rel="stylesheet" href="../dist/leaflet.draw-ellipse.css" />-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton@2.0.0/src/easy-button.css">
+
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-easybutton@2.0.0/src/easy-button.js"></script>
+    <script src="./example/leaflet.draw-src.js"></script>
+    <script src="./example/leaflet.box.js"></script>
+    <script src="./example/leaflet.arc.js"></script>
+    <script src="./example/leaflet.ellipse.js"></script>
+    <script src="./example/Leaflet.draw-box.js"></script>
+    <script src="./example/Leaflet.draw-arc.js"></script>
+    <script src="./example/Leaflet.draw-ellipse.js"></script>
+
+</head>
+
+<body>
+    <div id="map" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+    <a href="https://github.com/MoebiusSolutions/leaflet-draw-ellipse"><img style="z-index: 99999 !important; position: absolute; top: 0; right: 0; border: 0;"
+            src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
+            alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+    <script>
+
+        let osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            osm = L.tileLayer(osmUrl, {
+                maxZoom: 18,
+                attribution: osmAttrib
+            }),
+            map = new L.Map('map', {
+                layers: [osm],
+                center: new L.LatLng(-37.7772, 175.2756),
+                zoom: 15,
+
+            })
+
+        L.easyButton('<span>box</span>', function () {
+            let options = {
+                shapeOptions: {
+                    color: 'rgb(255,255,0)',
+                    width: 2,
+                    fill: false
+                }
+            }
+            new L.Draw.Box(map, options).enable()
+        }).addTo(map)
+
+        L.easyButton('<span>arc</span>', function () {
+            let options = {
+                shapeOptions: {
+                    width: 2,
+                    fill: false,
+                    color: 'purple'
+                }
+            }
+            new L.Draw.Arc(map, options).enable()
+        }).addTo(map)
+
+        L.easyButton('<span>ell</span>', function () {
+            let options = {
+                shapeOptions: {
+                    color: 'hotpink',
+                    opacity: 1.0,
+                    width: 2,
+                    fill: true,
+                    fillColor: 'green',
+                    fillOpacity: .7
+                }
+            }
+            new L.Draw.Ellipse(map, options).enable()
+        }).addTo(map)
+
+        map.on('draw:created', e => {
+
+            switch (e.layerType) {
+                case 'box':
+                    addBox(e)
+                    break
+                case 'arc':
+                    addArc(e)
+                    break
+                case 'ellipse':
+                    addEllipse(e)
+                    break
+                default:
+                    console.log('not valid layerType')
+            }
+
+        })
+
+        function addBox(e) {
+
+            let newBox = L.box({
+                center: e.layer.getCenter(),
+                width: e.layer.getWidth(),
+                length: e.layer.getLength(),
+                bearing: e.layer.getBearing(),
+                //Style options anything valid for L.polygon
+                color: 'rgb(255,255,0)'
+            }).on('dblclick', e => toggle(e, newBox))
+
+            newBox.editing.enable()
+
+            map.addLayer(newBox)
+        }
+
+        function addArc(e) {
+            let newArc = L.arc({
+                center: e.layer.getCenter(),
+                radius: e.layer.getRadius(),
+                startBearing: e.layer.getStartBearing(),
+                endBearing: e.layer.getEndBearing(),
+                color: e.layer.options.color
+            }).on('dblclick', e => toggle(e, newArc))
+
+            newArc.editing.enable()
+
+            map.addLayer(newArc)
+        }
+
+
+        function addEllipse(e) {
+            console.log("e.layer", e.layer)
+            let newEllipse = L.ellipse(e.layer.getLatLng(), e.layer.getRadius(), e.layer._tiltDeg,
+                {
+                    fill: true,
+                    fillColor: e.layer.options.fillColor,
+                    fillOpacity: e.layer.options.fillOpacity,
+                    color: e.layer.options.color,
+                    opacity: e.layer.options.opacity
+                }).on('dblclick', e => toggle(e, newEllipse))
+
+            newEllipse.editing.enable()
+
+            map.addLayer(newEllipse)
+        }
+
+
+        function toggle(e, shape) {
+            L.DomEvent.stop(e)
+
+            if (shape.editing.enabled()) {
+                shape.editing.disable()
+            } else {
+                shape.editing.enable()
+            }
+        }
+
+        let box1 = L.box({
+            center: [-37.7772, 175.2756],
+            width: 1000,
+            length: 500,
+            bearing: 45,
+            color: 'blue'
+        }).on('dblclick', e => toggle(e, box1))
+
+        let arc1 = L.arc({
+            center: [-37.7772, 175.2756],
+            radius: 1000,
+            color: 'red',
+            startBearing: 0,
+            endBearing: 90
+        }).on('dblclick', e => toggle(e, arc1))
+
+        let ellipse1 = L.ellipse(
+            { lat: -37.7772, lng: 175.2756 },
+            [800, 400],
+            90,
+            { color: 'green' }
+        ).on('dblclick', e => toggle(e, ellipse1))
+
+        map.addLayer(ellipse1)
+        map.addLayer(arc1)
+        map.addLayer(box1)
+    </script>
+</body>
+
+</html>

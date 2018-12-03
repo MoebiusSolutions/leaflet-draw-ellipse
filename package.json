@@ -1,0 +1,39 @@
+{
+  "name": "leaflet-draw-ellipse",
+  "version": "1.0.0",
+  "description": "leaflet plugin for drawing ellipse",
+  "main": "leaflet.draw-ellipse.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup --config rollup.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoebiusSolutions/leaflet-draw-ellipse.git"
+  },
+  "keywords": [
+    "Leaflet",
+    "plugin",
+    "ellipse"
+  ],
+  "author": "Kevin Taylor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MoebiusSolutions/leaflet-draw-ellipse/issues"
+  },
+  "homepage": "https://github.com/MoebiusSolutions/leaflet-draw-ellipse#readme",
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-preset-latest": "^6.24.1",
+    "eslint": "^4.3.0",
+    "geolib": "^2.0.22",
+    "leaflet-ellipse": "^0.9.1",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-node-resolve": "^3.0.0"
+  },
+  "dependencies": {
+    "the-answer": "^1.0.0"
+  }
+}
