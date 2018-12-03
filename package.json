@@ -2,7 +2,7 @@
   "name": "leaflet-draw-ellipse",
   "version": "1.0.0",
   "description": "leaflet plugin for drawing ellipse",
-  "main": "leaflet.draw-ellipse.js",
+  "main": "Leaflet.draw-ellipse.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup --config rollup.config.js"

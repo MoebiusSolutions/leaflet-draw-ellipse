@@ -5,11 +5,11 @@ Leaflet plugin for drawing ellipse
 Leaflet Draw support for leaflet.sector inspired by [Leaflet.ellipse](https://github.com/haleystorm/Leaflet.draw-ellipse). Checkout the [Demo]
 
 # Important
-Leaflet.draw-sector requires 
+Leaflet.draw-ellipse requires 
 
 + [Leaflet 0.7](https://github.com/Leaflet/Leaflet/releases/tag/v0.7) or higher
 + [Leaflet.draw 0.2.4](https://github.com/Leaflet/Leaflet.draw/releases/tag/v0.2.4) or higher
-+ [leaflet.sector](https://github.com/jjwtay/leaflet.ellipse)
++ [leaflet.ellipse](https://github.com/jdfergason/Leaflet.Ellipse)
 
 ## How to
 
@@ -32,7 +32,7 @@ Leaflet.draw-sector requires
 
 ## Usage
 
-See [Leaflet.draw](https://github.com/Leaflet/Leaflet.draw#using) and [leaflet.sector](https://github.com/jjwtay/leaflet.ellipse).
+See [Leaflet.draw](https://github.com/Leaflet/Leaflet.draw#using) and [leaflet.ellipse](https://github.com/jdfergason/Leaflet.Ellipse).
 
 ## Checkout
 
