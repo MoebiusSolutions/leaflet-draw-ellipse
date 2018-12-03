@@ -1,8 +1,7 @@
 # leaflet-draw-ellipse
 Leaflet plugin for drawing ellipse
 
-# Leaflet.draw-sector
-Leaflet Draw support for leaflet.sector inspired by [Leaflet.ellipse](https://github.com/haleystorm/Leaflet.draw-ellipse). Checkout the [Demo]
+Parts of leaflet-draw-ellipse support for leaflet.ellipse inspired by [Leaflet.draw-ellipse](https://github.com/haleystorm/Leaflet.draw-ellipse). Checkout the [Demo]
 
 # Important
 Leaflet.draw-ellipse requires 
