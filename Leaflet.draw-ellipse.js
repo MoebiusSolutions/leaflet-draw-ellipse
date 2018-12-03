@@ -63,86 +63,35 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
             this._shape.setTilt(this._bearing)
         }
     },
-    _fireCreatedEvent: function _fireCreatedEvent () {
-        let ellipse = L.ellipse(this._startLatLng, this._shape.getRadius(), // KBT ??
-            this._bearing, this.options.shapeOptions)
+    _fireCreatedEvent: function _fireCreatedEvent (e) {
+        let radii = [this._shape._mRadiusX, this._shape._mRadiusY]
+        var ellipse = L.ellipse(this._startLatLng, radii, this._bearing, this.options.shapeOptions)
 
         L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, ellipse)
     },
     _onMouseMove: function _onMouseMove (e) {
         let latlng = e.latlng
-        var radius = void 0,
-            bearing = void 0
-
-        this._tooltip.updatePosition(latlng)
 
         if (this._isDrawing) {
-
-            if (this._radius) {
-                this._drawShape(latlng)
-
-                this._bearing = bearing = this._computeBearing(latlng)
-
-                this._tooltip.updateContent({
-                    text: L.drawLocal.draw.handlers.ellipse.tooltip.end,
-                    subtext: 'Bearing(degrees): ' + bearing
-                })
-            } else {
-                this._radius = radius = this._startLatLng.distanceTo(latlng)
-
-                this._bearing = bearing = this._computeBearing(latlng)
-
-                this._tooltip.updateContent({
-                    text: L.drawLocal.draw.handlers.ellipse.tooltip.line,
-                    subtext: 'Radius(meters): ' + radius + ', Bearing(degrees): ' + bearing
-                })
-            }
+            this._drawShape(latlng)
+            this._tooltip.updateContent({
+                text: L.drawLocal.draw.handlers.ellipse.tooltip.line,
+                subtext: 'Radius(meters): ' + this._radius + ', Bearing(degrees): ' + this._bearing
+            })
+            this._tooltip.updatePosition(latlng)
         }
     },
     _onMouseDown: function _onMouseDown (e) {
-        let latlng = e.latlng
-
-        var pc = void 0,
-            ph = void 0,
-            v = void 0,
-            newB = void 0
-
         this._isDrawing = true
-
-        if (!this._startLatLng) {
-
-            this._startLatLng = latlng
-        } else if (!this._radius) {
-            pc = this._map.project(this._startLatLng)
-            ph = this._map.project(latlng)
-            v = [ph.x - pc.x, ph.y - pc.y]
-
-            newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
-
-            if (newB !== undefined) {
-                this._bearing = newB
-            }
-            this._radius = this._startLatLng.distanceTo(latlng)
-        } else {
-            pc = this._map.project(this._startLatLng)
-            ph = this._map.project(latlng)
-            v = [ph.x - pc.x, ph.y - pc.y]
-
-            newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
-            if (newB !== undefined) {
-                this._bearing = newB
-            }
-        }
+        this._startLatLng = e.latlng
     },
     _onMouseUp: function _onMouseUp (e) {
-        if (this._endBearing) {
-            this._fireCreatedEvent(e)
+        this._fireCreatedEvent(e)
 
-            this.disable()
-
-            if (this.options.repeatMode) {
-                this.enable()
-            }
+        this.disable()
+        this._tooltip.updateContent({ text: '' })
+        if (this.options.repeatMode) {
+            this.enable()
         }
     },
 

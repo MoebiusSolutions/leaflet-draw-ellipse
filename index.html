@@ -131,8 +131,8 @@
 
 
         function addEllipse(e) {
-            console.log("e.layer", e.layer)
-            let newEllipse = L.ellipse(e.layer.getLatLng(), e.layer.getRadius(), e.layer._tiltDeg,
+            const radii = [e.layer._mRadiusX, e.layer._mRadiusY]
+            let newEllipse = L.ellipse(e.layer._latlng, radii, e.layer._tiltDeg,
                 {
                     fill: true,
                     fillColor: e.layer.options.fillColor,
