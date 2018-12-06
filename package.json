@@ -1,6 +1,6 @@
 {
   "name": "leaflet-draw-ellipse",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "leaflet plugin for drawing ellipse",
   "main": "Leaflet.draw-ellipse.js",
   "scripts": {
