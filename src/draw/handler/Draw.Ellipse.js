@@ -43,9 +43,13 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         const RAD_TO_DEG = 180 / Math.PI
         const pc = this._map.project(this._startLatLng)
         const ph = this._map.project(latlng)
-        const v = [ph.x - pc.x, pc.y - ph.y]
-        const bearing = (180 - Math.atan2(v[1], v[0]) * RAD_TO_DEG) % 360
-        return bearing || this._bearing
+        const v = [ph.x - pc.x, ph.y - pc.y]
+        const bearing = (Math.atan2(v[0], -v[1]) * RAD_TO_DEG) % 360
+        return bearing
+    },
+
+    getDistance (p, q) {
+        return L.latLng(p).distanceTo(q)
     },
 
     _drawShape (latlng) {
@@ -65,14 +69,15 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
             this._bearing = this._computeBearing(latlng)
             this._shape.setTilt(this._bearing)
 
-            this._radius = radius = this._startLatLng.distanceTo(latlng)
-            this._shape.setRadius([radius, radius / 2])
+            this._radius = radius = this.getDistance(this._startLatLng, latlng)
+            this._shape.setRadii([radius, radius / 2])
+            this._shape.setLatLngs()
         }
     },
 
 
     _fireCreatedEvent (e) {
-        const radii = [this._shape._mRadiusX, this._shape._mRadiusY]
+        const radii = [this._shape._semiMajor, this._shape._semiMinor]
         const ellipse = L.ellipse(
             this._startLatLng,
             radii,
@@ -81,6 +86,11 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         )
 
         L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, ellipse)
+    },
+
+    _onMouseDown (e) {
+        this._isDrawing = true
+        this._startLatLng = e.latlng
     },
 
     _onMouseMove (e) {
@@ -94,11 +104,6 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
             })
             this._tooltip.updatePosition(latlng)
         }
-    },
-
-    _onMouseDown (e) {
-        this._isDrawing = true
-        this._startLatLng = e.latlng
     },
 
     _onMouseUp (e) {

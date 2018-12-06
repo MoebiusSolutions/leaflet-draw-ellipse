@@ -118,7 +118,7 @@
         function addArc(e) {
             let newArc = L.arc({
                 center: e.layer.getCenter(),
-                radius: e.layer.getRadius(),
+                radius: e.layer.getRadii(),
                 startBearing: e.layer.getStartBearing(),
                 endBearing: e.layer.getEndBearing(),
                 color: e.layer.options.color
@@ -131,8 +131,10 @@
 
 
         function addEllipse(e) {
-            const radii = [e.layer._mRadiusX, e.layer._mRadiusY]
-            let newEllipse = L.ellipse(e.layer._latlng, radii, e.layer._tiltDeg,
+            const center = e.layer.getCenter()
+            const radii = e.layer.getRadii()
+            const tilt = e.layer.getTilt()
+            let newEllipse = L.ellipse(center, radii, tilt,
                 {
                     fill: true,
                     fillColor: e.layer.options.fillColor,
@@ -176,10 +178,9 @@
         let ellipse1 = L.ellipse(
             { lat: -37.7772, lng: 175.2756 },
             [800, 400],
-            90,
+            30,
             { color: 'green' }
         ).on('dblclick', e => toggle(e, ellipse1))
-
         map.addLayer(ellipse1)
         map.addLayer(arc1)
         map.addLayer(box1)

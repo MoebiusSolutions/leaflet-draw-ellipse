@@ -3,17 +3,80 @@ L.Edit = L.Edit || {}
 L.Edit.Ellipse = L.Edit.SimpleShape.extend({
     options: {
         moveIcon: new L.DivIcon({
-            iconSize: new L.Point(8, 8),
+            iconSize: new L.Point(7, 7),
             className: 'leaflet-div-icon leaflet-editing-icon leaflet-edit-move'
         }),
         resizeIcon: new L.DivIcon({
-            iconSize: new L.Point(8, 8),
+            iconSize: new L.Point(7, 7),
             className: 'leaflet-div-icon leaflet-editing-icon leaflet-edit-resize'
         }),
         rotateIcon: new L.DivIcon({
-            iconSize: new L.Point(8, 8),
+            iconSize: new L.Point(7, 7),
             className: 'leaflet-div-icon leaflet-editing-icon leaflet-edit-rotate'
         })
+    },
+
+    wrapBrg (brg) {
+        if (brg < 0.0) {
+            brg += 360.0
+            this.wrapBrg(brg)
+        }
+        else if (brg > 360.0) {
+            brg -= 360.0
+            this.wrapBrg(brg)
+        }
+        return brg
+    },
+
+    atan2d (y, x) {
+        const RAD_TO_DEG = 180 / Math.PI
+        return RAD_TO_DEG * Math.atan2(y, x)
+    },
+
+    computeDestinationPoint () {
+        const start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { lat: 0, lng: 0 }
+        const distance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1
+        const bearing = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0
+        const radius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 6378137
+
+
+        const bng = bearing * Math.PI / 180
+
+        const lat1 = start.lat * Math.PI / 180
+        const lon1 = start.lng * Math.PI / 180
+
+        let lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / radius) + Math.cos(lat1) * Math.sin(distance / radius) * Math.cos(bng))
+
+        let lon2 = lon1 + Math.atan2(Math.sin(bng) * Math.sin(distance / radius) * Math.cos(lat1), Math.cos(distance / radius) - Math.sin(lat1) * Math.sin(lat2))
+
+        lat2 = lat2 * 180 / Math.PI
+        lon2 = lon2 * 180 / Math.PI
+
+        return {
+            lat: lat2,
+            lng: lon2
+        }
+    },
+
+    getDistance (p, q) {
+        return L.latLng(p).distanceTo(q)
+    },
+
+    getPos (center, angle, trueStart, semiMinor, semiMajor) {
+        const DEG_TO_RAD = Math.PI / 180
+        const y = semiMinor * Math.sin(angle * DEG_TO_RAD)
+        const x = semiMajor * Math.cos(angle * DEG_TO_RAD)
+        const dist = Math.sqrt(x * x + y * y)
+        const tangle = (semiMinor !== semiMajor ? this.atan2d(y, x) : angle)
+        return (this.computeDestinationPoint(center, dist, trueStart + tangle))
+    },
+
+    getMarkerPos (deg) {
+        const center = this._shape.getCenter()
+        const trueStart = this.wrapBrg(this._shape.getTilt())
+        const semiMinor = this._shape.getSemiMinor()
+        const semiMajor = this._shape.getSemiMajor()
+        return this.getPos(center, deg, trueStart, semiMinor, semiMajor)
     },
 
     _initMarkers () {
@@ -32,79 +95,34 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
     },
 
     _createMoveMarker () {
-        const center = this._shape.getLatLng()
-
+        const center = this._shape.getCenter()
         this._moveMarker = this._createMarker(center, this.options.moveIcon)
     },
 
     _createResizeMarker () {
-        const center = this._shape.getLatLng(),
-            resizemarkerPointX1 = this._getResizeMarkerPointX1(center),
-            resizemarkerPointX2 = this._getResizeMarkerPointX2(center),
-            resizemarkerPointY1 = this._getResizeMarkerPointY1(center),
-            resizemarkerPointY2 = this._getResizeMarkerPointY2(center)
-
         this._resizeMarkers = []
-        this._resizeMarkers.push(this._createMarker(resizemarkerPointX1, this.options.resizeIcon))
-        this._resizeMarkers.push(this._createMarker(resizemarkerPointX2, this.options.resizeIcon))
-        this._resizeMarkers.push(this._createMarker(resizemarkerPointY1, this.options.resizeIcon))
-        this._resizeMarkers.push(this._createMarker(resizemarkerPointY2, this.options.resizeIcon))
+        this._resizeMarkers.push(this._createMarker(this.getMarkerPos(0), this.options.resizeIcon))
+        this._resizeMarkers.push(this._createMarker(this.getMarkerPos(180), this.options.resizeIcon))
+        this._resizeMarkers.push(this._createMarker(this.getMarkerPos(90), this.options.resizeIcon))
+        this._resizeMarkers.push(this._createMarker(this.getMarkerPos(270), this.options.resizeIcon))
         this._resizeMarkers[0]._isX = true
         this._resizeMarkers[1]._isX = true
-        this._resizeMarkers[2]._isX = false
-        this._resizeMarkers[3]._isX = false
+        this._resizeMarkers[2]._isY = true
+        this._resizeMarkers[3]._isY = true
     },
 
     _createRotateMarker () {
-        const center = this._shape.getLatLng(),
-            rotatemarkerPoint = this._getRotateMarkerPoint(center)
-
-        this._rotateMarker = this._createMarker(rotatemarkerPoint, this.options.rotateIcon)
+        const pos = this.getRotateMarkerPos()
+        this._rotateMarker = this._createMarker(pos, this.options.rotateIcon)
     },
 
-    _getResizeMarkerPointX1 (latlng) {
-        const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
-        const radius = this._shape._radiusX
-        const xDelta = radius * Math.cos(tilt)
-        const yDelta = radius * Math.sin(tilt)
-        const point = this._map.project(latlng)
-        return this._map.unproject([point.x + xDelta, point.y + yDelta])
-    },
-
-    _getResizeMarkerPointX2 (latlng) {
-        const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
-        const radius = this._shape._radiusX
-        const xDelta = radius * Math.cos(tilt)
-        const yDelta = radius * Math.sin(tilt)
-        const point = this._map.project(latlng)
-        return this._map.unproject([point.x - xDelta, point.y - yDelta])
-    },
-
-    _getResizeMarkerPointY1 (latlng) {
-        const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
-        const radius = this._shape._radiusY
-        const xDelta = radius * Math.sin(tilt)
-        const yDelta = radius * Math.cos(tilt)
-        const point = this._map.project(latlng)
-        return this._map.unproject([point.x - xDelta, point.y + yDelta])
-    },
-
-    _getResizeMarkerPointY2 (latlng) {
-        const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
-        const radius = this._shape._radiusY
-        const xDelta = radius * Math.sin(tilt)
-        const yDelta = radius * Math.cos(tilt)
-        const point = this._map.project(latlng)
-        return this._map.unproject([point.x + xDelta, point.y - yDelta])
-    },
-
-    _getRotateMarkerPoint (latlng) {
-        const tilt = this._shape._tiltDeg * (Math.PI / 180)//L.LatLng.DEG_TO_RAD;
-        const radius = this._shape._radiusX + 20
-        const xDelta = radius * Math.cos(tilt)
-        const yDelta = radius * Math.sin(tilt)
-        const point = this._map.project(latlng)
-        return this._map.unproject([point.x - xDelta, point.y - yDelta])
+    getRotateMarkerPos () {
+        const pos = this.getMarkerPos(0)
+        const p = this._map.project(pos)
+        const c = this._map.project(this._shape.getCenter())
+        const dX = (p.x >= c.x ? 20 : -20)
+        const dY = (p.y <= c.y ? -20 : 20)
+        return this._map.unproject([p.x + dX, p.y + dY])
     },
 
     _onMarkerDragStart (e) {
@@ -123,13 +141,13 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         } else {
             this._resize(latlng)
         }
-
         this._shape.redraw()
     },
 
     _move (latlng) {
         // Move the ellipse
-        this._shape.setLatLng(latlng)
+        this._shape.setCenter(latlng)
+        this._shape.setLatLngs()
 
         // Move the resize marker
         this._repositionResizeMarkers()
@@ -142,8 +160,8 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         const RAD_TO_DEG = 180 / Math.PI
         const pc = this._map.project(fixedLatlng)
         const ph = this._map.project(latlng)
-        const v = [ph.x - pc.x, pc.y - ph.y]
-        const bearing = (180 - Math.atan2(v[1], v[0]) * RAD_TO_DEG) % 360
+        const v = [ph.x - pc.x, ph.y - pc.y]
+        const bearing = (Math.atan2(v[0], -v[1]) * RAD_TO_DEG) % 360
         return bearing || this._bearing
     },
 
@@ -151,6 +169,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         const fixedLatLng = this._moveMarker.getLatLng()
         const bearing = this._computeBearing(fixedLatLng, latlng)
         this._shape.setTilt(bearing)
+        this._shape.setLatLngs()
         // Move the resize marker
         this._repositionResizeMarkers()
 
@@ -159,14 +178,14 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
     },
 
     _resize (latlng) {
-        const moveLatLng = this._moveMarker.getLatLng()
-        const radius = moveLatLng.distanceTo(latlng)
+        //const moveLatLng = this._moveMarker.getLatLng()
+        //const radius = moveLatLng.distanceTo(latlng)
         if (this._currentMarker._isX) {
-            this._shape.setRadius([radius, this._shape._mRadiusY])
+            this._shape.setSemiMajor(this.getDistance(this._shape.getCenter(), latlng))
         } else {
-            this._shape.setRadius([this._shape._mRadiusX, radius])
+            this._shape.setSemiMinor(this.getDistance(this._shape.getCenter(), latlng))
         }
-
+        this._shape.setLatLngs()
         // Move the resize marker
         this._repositionResizeMarkers()
         // Move the rotate marker
@@ -174,23 +193,14 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
     },
 
     _repositionResizeMarkers () {
-        const latlng = this._moveMarker.getLatLng()
-        const resizemarkerPointX1 = this._getResizeMarkerPointX1(latlng)
-        const resizemarkerPointX2 = this._getResizeMarkerPointX2(latlng)
-        const resizemarkerPointY1 = this._getResizeMarkerPointY1(latlng)
-        const resizemarkerPointY2 = this._getResizeMarkerPointY2(latlng)
-
-        this._resizeMarkers[0].setLatLng(resizemarkerPointX1)
-        this._resizeMarkers[1].setLatLng(resizemarkerPointX2)
-        this._resizeMarkers[2].setLatLng(resizemarkerPointY1)
-        this._resizeMarkers[3].setLatLng(resizemarkerPointY2)
+        this._resizeMarkers[0].setLatLng(this.getMarkerPos(0))
+        this._resizeMarkers[1].setLatLng(this.getMarkerPos(180))
+        this._resizeMarkers[2].setLatLng(this.getMarkerPos(90))
+        this._resizeMarkers[3].setLatLng(this.getMarkerPos(270))
     },
 
     _repositionRotateMarker () {
-        const latlng = this._moveMarker.getLatLng()
-        const rotatemarkerPoint = this._getRotateMarkerPoint(latlng)
-
-        this._rotateMarker.setLatLng(rotatemarkerPoint)
+        this._rotateMarker.setLatLng(this.getRotateMarkerPos())
     }
 })
 

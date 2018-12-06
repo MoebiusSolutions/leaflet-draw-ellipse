@@ -1,77 +1,37 @@
-/**
- * Copyright 2014 JD Fergason
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+const
+    RAD_TO_DEG = 180 / Math.PI,
+    DEG_TO_RAD = Math.PI / 180
 
-
-L.SVG.include({
-    _updateEllipse (layer) {
-        const c = layer._point,
-            rx = layer._radiusX,
-            ry = layer._radiusY,
-            phi = layer._tiltDeg,
-            endPoint = layer._endPointParams
-
-        const d = 'M' + endPoint.x0 + ',' + endPoint.y0 +
-            'A' + rx + ',' + ry + ',' + phi + ',' +
-            endPoint.largeArc + ',' + endPoint.sweep + ',' +
-            endPoint.x1 + ',' + endPoint.y1 + ' z'
-        this._setPath(layer, d)
+const wrapBrg = (brg) => {
+    if (brg < 0.0) {
+        brg += 360.0
+        wrapBrg(brg)
     }
-})
+    else if (brg > 360.0) {
+        brg -= 360.0
+        wrapBrg(brg)
+    }
+    return brg
+}
 
-L.Canvas.include({
-    _updateEllipse (layer) {
-        if (layer._empty()) { return }
 
-        let p = layer._point,
-            ctx = this._ctx,
-            r = layer._radiusX,
-            s = (layer._radiusY || r) / r
+const atan2d = (y, x) => RAD_TO_DEG * Math.atan2(y, x)
 
-        this._drawnLayers[layer._leaflet_id] = layer
+const closeToZero = (x) => (Math.abs(x) < 0.0000000001 ? 0 : x)
 
-        ctx.save()
-
-        ctx.translate(p.x, p.y)
-        if (layer._tilt !== 0) {
-            ctx.rotate(layer._tilt)
-        }
-        if (s !== 1) {
-            ctx.scale(1, s)
-        }
-
-        ctx.beginPath()
-        ctx.arc(0, 0, r, 0, Math.PI * 2)
-        ctx.restore()
-
-        this._fillStroke(ctx, layer)
-    },
-})
-
-L.Ellipse = L.Path.extend({
-
+L.Ellipse = L.Polyline.extend({
     options: {
-        fill: true,
-        startAngle: 0,
-        endAngle: 359.9
+        weight: 5,
+        color: '#ffff00',
+        stroke: true
     },
 
     initialize (latlng, radii, tilt, options) {
-
         L.setOptions(this, options)
-        this._latlng = L.latLng(latlng)
+        this._center = latlng
+        this._numberOfPoints = 61
+        this._startBearing = 0
+        this._endBearing = 360
 
         if (tilt) {
             this._tiltDeg = tilt
@@ -80,150 +40,225 @@ L.Ellipse = L.Path.extend({
         }
 
         if (radii) {
-            this._mRadiusX = radii[0]
-            this._mRadiusY = radii[1]
+            this._semiMajor = radii[0]
+            this._semiMinor = radii[1]
         }
+        this.setLatLngs()
     },
 
-    setRadius (radii) {
-        this._mRadiusX = radii[0]
-        this._mRadiusY = radii[1]
+    getCenter: function getCenter () {
+        return this._center
+    },
+
+    setCenter: function setCenter (center = { lat: 0, lng: 0 }) {
+        this._center = center
         return this.redraw()
     },
 
-    getRadius () {
-        return new L.point(this._mRadiusX, this._mRadiusY)
+    setRadii: function setRadii (radii) {
+        this._semiMajor = radii[0]
+        this._semiMinor = radii[1]
+        return this.redraw()
     },
 
-    setTilt (tilt) {
+    getRadii: function getRadii () {
+        return [this._semiMajor, this._semiMinor]
+    },
+
+    setSemiMinor: function setSemiMinor (val) {
+        this._semiMinor = val
+        return this.redraw()
+    },
+
+    getSemiMinor: function getSemiMinor () {
+        return this._semiMinor
+    },
+
+    setSemiMajor: function setSemiMajor (val) {
+        this._semiMajor = val
+        return this.redraw()
+    },
+
+    getSemiMajor: function getSemiMajor () {
+        return this._semiMajor
+    },
+
+    setTilt: function setTilt (tilt) {
         this._tiltDeg = tilt
         return this.redraw()
     },
 
-    getTilt () {
+    getTilt: function getTilt () {
         return this._tiltDeg
     },
 
-    getBounds () {
-        // TODO respect tilt (bounds are too big)
-        const lngRadius = this._getLngRadius(),
-            latRadius = this._getLatRadius(),
-            latlng = this._latlng
+    setStartBearing: function setStartBearing (brg) {
+        let startBearing = brg || 0
+        /**
+         * Not sure how much of these checks are neccessary
+         * just using all as a temp fix for rotation problems.
+         */
+        const endBearing = this.getEndBearing() || 360
 
-        return new L.LatLngBounds(
-            [latlng.lat - latRadius, latlng.lng - lngRadius],
-            [latlng.lat + latRadius, latlng.lng + lngRadius])
+        while (startBearing < 0) {
+            startBearing += 360
+        }
+        while (startBearing > 360) {
+            startBearing -= 360
+        }
+
+        if (endBearing < startBearing) {
+            while (endBearing <= startBearing) {
+                startBearing = startBearing - 360
+            }
+        }
+
+        this._startBearing = startBearing
+        return this.redraw()
     },
 
-    // @method setLatLng(latLng: LatLng): this
-    // Sets the position of a circle marker to a new location.
-    setLatLng (latlng) {
-        this._latlng = L.latLng(latlng)
-        this.redraw()
-        return this.fire('move', { latlng: this._latlng })
+    getStartBearing: function getStartBearing () {
+        return this._startBearing
     },
 
-    // @method getLatLng(): LatLng
-    // Returns the current geographical position of the circle marker
-    getLatLng () {
-        return this._latlng
+
+    setEndBearing: function setEndBearing (brg) {
+        let endBearing = brg || 90
+
+        /**
+         * Not sure how much of these checks are neccessary
+         * just using all as a temp fix for rotation problems.
+         */
+        const startBearing = this.getStartBearing() || 0
+
+        while (endBearing < 0) {
+            endBearing += 360
+        }
+        while (endBearing > 360) {
+            endBearing -= 360
+        }
+
+        if (startBearing > endBearing) {
+            while (startBearing >= endBearing) {
+                endBearing += 360
+            }
+        }
+
+        while (endBearing - startBearing > 360) {
+            endBearing -= 360
+        } this._endBearing = endBearing
+        return this.redraw()
+    },
+
+    getEndBearing: function getEndBearing () {
+        return this._endBearing
+    },
+
+    getNumberOfPoints: function getNumberOfPoints () {
+        return this._numberOfPoints
+    },
+
+    setNumberOfPoints: function setNumberOfPoints () {
+        const numberOfPoints = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 32
+
+        this._numberOfPoints = Math.max(10, numberOfPoints)
+        return this.redraw()
+    },
+
+    getOptions: function getOptions () {
+        return this.options
+    },
+
+    setOptions: function setOptions (options) {
+        const ops = options || {}
+        L.setOptions(this, ops)
+        return this.redraw()
+    },
+
+    getLatLngs: function getLatLngs () {
+        let angle, x, y
+        const latlngs = []
+        let brg = wrapBrg(this.getTilt())
+        const start = wrapBrg(this.getStartBearing())
+        let diff = this.getEndBearing() - start
+        if (diff < 0) {
+            diff += 360
+        }
+        const delta = (diff / (this._numberOfPoints - 1))
+
+        if (this._semiMinor === this._semiMajor) {
+            brg = 0
+        }
+
+        const trueStart = wrapBrg(brg + start)
+        //start = wrapBrg(450 - start)
+        for (let i = 0; i < this._numberOfPoints; i++) {
+            angle = start + (i * delta)
+            if (angle >= 360.0) {
+                angle -= 360.0
+            }
+
+            y = this._semiMinor * Math.sin(angle * DEG_TO_RAD)
+            x = this._semiMajor * Math.cos(angle * DEG_TO_RAD)
+            const tangle = closeToZero((this._semiMinor !== this._semiMajor ? atan2d(y, x) : i * delta))
+            const dist = Math.sqrt(x * x + y * y)
+            const pos = this.computeDestinationPos(this.getCenter(), dist, trueStart + tangle)
+            //const tpos = this.getPos(this.getCenter(), angle, trueStart, this.getSemiMinor(), this.getSemiMajor())
+            latlngs.push(pos)
+
+        }
+
+        return latlngs
+    },
+
+    getPos: function getPos (center, angle, trueStart, semiMinor, semiMajor) {
+        const y = semiMinor * Math.cos(angle * DEG_TO_RAD)
+        const x = semiMajor * Math.sin(angle * DEG_TO_RAD)
+        const tangle = closeToZero((semiMinor !== semiMajor ? atan2d(y, x) : -angle))
+
+        const dist = Math.sqrt(x * x + y * y)
+        return (this.computeDestinationPos(center, dist, trueStart + tangle))
+    },
+
+    getLatRadius () {
+        return (this._semiMinor / 40075017) * 360
+    },
+
+    getLngRadius () {
+        return ((this._semiMajor / 40075017) * 360) / Math.cos((Math.PI / 180) * this._latlngs.lat)
+    },
+
+
+    setLatLngs: function setLatLngs (latlngs = this.getLatLngs()) {
+        this._setLatLngs(latlngs)
+        return this.redraw()
     },
 
     setStyle: L.Path.prototype.setStyle,
 
-    _project () {
-        const lngRadius = this._getLngRadius(),
-            latRadius = this._getLatRadius(),
-            latlng = this._latlng,
-            pointLeft = this._map.latLngToLayerPoint([latlng.lat, latlng.lng - lngRadius]),
-            pointBelow = this._map.latLngToLayerPoint([latlng.lat - latRadius, latlng.lng])
+    computeDestinationPos: function computeDestinationPos () {
+        const start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { lat: 0, lng: 0 }
+        const distance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1
+        const bearing = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0
+        const radius = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 6378137
 
-        this._point = this._map.latLngToLayerPoint(latlng)
-        this._radiusX = Math.max(this._point.x - pointLeft.x, 1)
-        this._radiusY = Math.max(pointBelow.y - this._point.y, 1)
-        this._tilt = Math.PI * this._tiltDeg / 180
-        this._endPointParams = this._centerPointToEndPoint()
-        this._updateBounds()
-    },
 
-    _updateBounds () {
-        // http://math.stackexchange.com/questions/91132/how-to-get-the-limits-of-rotated-ellipse
-        const sin = Math.sin(this._tilt)
-        const cos = Math.cos(this._tilt)
-        const sinSquare = sin * sin
-        const cosSquare = cos * cos
-        const aSquare = this._radiusX * this._radiusX
-        const bSquare = this._radiusY * this._radiusY
-        const halfWidth = Math.sqrt(aSquare * cosSquare + bSquare * sinSquare)
-        const halfHeight = Math.sqrt(aSquare * sinSquare + bSquare * cosSquare)
-        const w = this._clickTolerance()
-        const p = [halfWidth + w, halfHeight + w]
-        this._pxBounds = new L.Bounds(this._point.subtract(p), this._point.add(p))
-    },
+        const bng = bearing * Math.PI / 180
 
-    _update () {
-        if (this._map) {
-            this._updatePath()
-        }
-    },
+        const lat1 = start.lat * Math.PI / 180
+        const lon1 = start.lng * Math.PI / 180
 
-    _updatePath () {
-        this._renderer._updateEllipse(this)
-    },
+        let lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / radius) + Math.cos(lat1) * Math.sin(distance / radius) * Math.cos(bng))
 
-    _getLatRadius () {
-        return (this._mRadiusY / 40075017) * 360
-    },
+        let lon2 = lon1 + Math.atan2(Math.sin(bng) * Math.sin(distance / radius) * Math.cos(lat1), Math.cos(distance / radius) - Math.sin(lat1) * Math.sin(lat2))
 
-    _getLngRadius () {
-        return ((this._mRadiusX / 40075017) * 360) / Math.cos((Math.PI / 180) * this._latlng.lat)
-    },
-
-    _centerPointToEndPoint () {
-        // Convert between center point parameterization of an ellipse
-        // too SVG's end-point and sweep parameters.  This is an
-        // adaptation of the perl code found here:
-        // http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Paths
-        const c = this._point,
-            rx = this._radiusX,
-            ry = this._radiusY,
-            theta2 = (this.options.startAngle + this.options.endAngle) * (Math.PI / 180),
-            theta1 = this.options.startAngle * (Math.PI / 180),
-            delta = this.options.endAngle,
-            phi = this._tiltDeg * (Math.PI / 180)
-
-        // Determine start and end-point coordinates
-        const x0 = c.x + Math.cos(phi) * rx * Math.cos(theta1) +
-            Math.sin(-phi) * ry * Math.sin(theta1)
-        const y0 = c.y + Math.sin(phi) * rx * Math.cos(theta1) +
-            Math.cos(phi) * ry * Math.sin(theta1)
-
-        const x1 = c.x + Math.cos(phi) * rx * Math.cos(theta2) +
-            Math.sin(-phi) * ry * Math.sin(theta2)
-        const y1 = c.y + Math.sin(phi) * rx * Math.cos(theta2) +
-            Math.cos(phi) * ry * Math.sin(theta2)
-
-        const largeArc = (delta > 180) ? 1 : 0
-        const sweep = (delta > 0) ? 1 : 0
+        lat2 = lat2 * 180 / Math.PI
+        lon2 = lon2 * 180 / Math.PI
 
         return {
-            x0, y0, 'tilt': phi, largeArc, sweep, x1, y1
+            lat: lat2,
+            lng: lon2
         }
-    },
-
-    _empty () {
-        return this._radiusX && this._radiusY && !this._renderer._bounds.intersects(this._pxBounds)
-    },
-
-    _containsPoint (p) {
-        // http://stackoverflow.com/questions/7946187/point-and-ellipse-rotated-position-test-algorithm
-        const sin = Math.sin(this._tilt)
-        const cos = Math.cos(this._tilt)
-        const dx = p.x - this._point.x
-        const dy = p.y - this._point.y
-        const sumA = cos * dx + sin * dy
-        const sumB = sin * dx - cos * dy
-        return sumA * sumA / (this._radiusX * this._radiusX) + sumB * sumB / (this._radiusY * this._radiusY) <= 1
     }
 })
 
