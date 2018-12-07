@@ -1,3 +1,17 @@
+var _extends = Object.assign || function (target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];
+
+    for (var key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        target[key] = source[key];
+      }
+    }
+  }
+
+  return target;
+};
+
 L.Draw.Ellipse = L.Draw.Feature.extend({
     statics: {
         TYPE: 'ellipse'
@@ -71,7 +85,6 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         }
     },
     _fireCreatedEvent: function _fireCreatedEvent(e) {
-        var radii = [this._shape._semiMajor, this._shape._semiMinor];
         var ellipse = L.ellipse(_extends({}, this.options.shapeOptions, {
             center: this._startLatLng,
             semiMinor: this._shape._semiMinor,

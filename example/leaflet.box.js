@@ -1,20 +1,4 @@
 
-
-const _extends = Object.assign || function (target) {
-    for (let i = 1; i < arguments.length; i++) {
-        const source = arguments[i]
-
-        for (const key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key]
-            }
-        }
-    }
-
-    return target
-}
-
-
 const boxObjectWithoutProperties = function (obj, keys) {
     const target = {}
 
@@ -125,7 +109,7 @@ L.Box = L.Polygon.extend({
 
     getMaxMin: function getMaxMin (values) {
         return values.reduce(function (acc, val) {
-            const newAcc = _extends({}, acc)
+            const newAcc = x_extends({}, acc)
             if (val < newAcc.min) newAcc.min = val
             if (val > newAcc.max) newAcc.max = val
             return newAcc
@@ -185,5 +169,5 @@ L.box = function (_ref2) {
         _ref2$bearing = _ref2.bearing,
         bearing = _ref2$bearing === undefined ? 0 : _ref2$bearing,
         options = boxObjectWithoutProperties(_ref2, ['center', 'width', 'length', 'bearing'])
-    return new L.Box(_extends({ center, width, length, bearing }, options))
+    return new L.Box(x_extends({ center, width, length, bearing }, options))
 }

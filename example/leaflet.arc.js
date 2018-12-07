@@ -1,18 +1,3 @@
-/*
-const _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];
-
-        for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key];
-            }
-        }
-    }
-
-    return target;
-};
-*/
 
 const ArcObjectWithoutProperties = function (obj, keys) {
     const target = {}
@@ -83,7 +68,7 @@ L.Arc = L.Polyline.extend({
          * Not sure how much of these checks are neccessary
          * just using all as a temp fix for rotation problems.
          */
-        let endBearing = this.getEndBearing() || 360
+        const endBearing = this.getEndBearing() || 360
 
         while (startBearing < 0) {
             startBearing += 360
@@ -113,7 +98,7 @@ L.Arc = L.Polyline.extend({
          * Not sure how much of these checks are neccessary
          * just using all as a temp fix for rotation problems.
          */
-        let startBearing = this.getStartBearing() || 0
+        const startBearing = this.getStartBearing() || 0
 
         while (endBearing < 0) {
             endBearing += 360
@@ -217,5 +202,5 @@ L.arc = function (_ref2) {
         _ref2$numberOfPoints = _ref2.numberOfPoints,
         numberOfPoints = _ref2$numberOfPoints === undefined ? 32 : _ref2$numberOfPoints,
         options = ArcObjectWithoutProperties(_ref2, ['center', 'radius', 'startBearing', 'endBearing', 'numberOfPoints'])
-    return new L.Arc(_extends({ center, radius, startBearing, numberOfPoints, endBearing }, options))
+    return new L.Arc(x_extends({ center, radius, startBearing, numberOfPoints, endBearing }, options))
 }

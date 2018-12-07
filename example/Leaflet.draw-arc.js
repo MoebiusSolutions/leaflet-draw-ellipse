@@ -1,19 +1,3 @@
-/*
-var _extends = Object.assign || function (target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];
-
-    for (var key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        target[key] = source[key];
-      }
-    }
-  }
-
-  return target;
-};
-*/
-
 //L.Draw.Arc = L.Draw.SimpleShape.extend({
 L.Draw.Arc = L.Draw.Feature.extend({
     statics: {
@@ -62,13 +46,13 @@ L.Draw.Arc = L.Draw.Feature.extend({
 
             const radius = Math.max(this._startLatLng.distanceTo(latlng), 10)
 
-            let pc = this._map.project(this._startLatLng)
-            let ph = this._map.project(latlng)
-            let v = [ph.x - pc.x, ph.y - pc.y]
+            const pc = this._map.project(this._startLatLng)
+            const ph = this._map.project(latlng)
+            const v = [ph.x - pc.x, ph.y - pc.y]
 
-            let startBearing = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
+            const startBearing = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
 
-            this._shape = L.arc(_extends({
+            this._shape = L.arc(x_extends({
                 center: this._startLatLng,
                 radius,
                 startBearing,
@@ -77,10 +61,10 @@ L.Draw.Arc = L.Draw.Feature.extend({
             this._map.addLayer(this._shape)
         } else {
             const _pc = this._map.project(this._startLatLng)
-            let _ph = this._map.project(latlng)
-            let _v = [_ph.x - _pc.x, _ph.y - _pc.y]
+            const _ph = this._map.project(latlng)
+            const _v = [_ph.x - _pc.x, _ph.y - _pc.y]
 
-            let endBearing = Math.atan2(_v[0], -_v[1]) * 180 / Math.PI % 360
+            const endBearing = Math.atan2(_v[0], -_v[1]) * 180 / Math.PI % 360
             this._shape.setEndBearing(endBearing)
             this._shape.setLatLngs(this._shape.getLatLngs())
         }
@@ -96,7 +80,7 @@ L.Draw.Arc = L.Draw.Feature.extend({
     },
 
     _fireCreatedEvent: function _fireCreatedEvent () {
-        const arc = L.arc(_extends({}, this.options.shapeOptions, {
+        const arc = L.arc(x_extends({}, this.options.shapeOptions, {
             center: this._startLatLng,
             radius: this._shape.getRadius(),
             startBearing: this._shape.getStartBearing(),
@@ -119,11 +103,11 @@ L.Draw.Arc = L.Draw.Feature.extend({
             if (this._radius) {
                 this._drawShape(latlng)
 
-                let pc = this._map.project(this._startLatLng)
-                let ph = this._map.project(latlng)
-                let v = [ph.x - pc.x, ph.y - pc.y]
+                const pc = this._map.project(this._startLatLng)
+                const ph = this._map.project(latlng)
+                const v = [ph.x - pc.x, ph.y - pc.y]
 
-                let bearing = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
+                const bearing = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
 
                 this._tooltip.updateContent({
                     text: L.drawLocal.draw.handlers.arc.tooltip.end,
@@ -131,11 +115,11 @@ L.Draw.Arc = L.Draw.Feature.extend({
                 })
             } else {
                 const _radius = this._startLatLng.distanceTo(latlng)
-                let _pc2 = this._map.project(this._startLatLng)
-                let _ph2 = this._map.project(latlng)
-                let _v2 = [_ph2.x - _pc2.x, _ph2.y - _pc2.y]
+                const _pc2 = this._map.project(this._startLatLng)
+                const _ph2 = this._map.project(latlng)
+                const _v2 = [_ph2.x - _pc2.x, _ph2.y - _pc2.y]
 
-                let _bearing = Math.atan2(_v2[0], -_v2[1]) * 180 / Math.PI % 360
+                const _bearing = Math.atan2(_v2[0], -_v2[1]) * 180 / Math.PI % 360
 
                 this._drawLine(latlng)
                 this._tooltip.updateContent({
@@ -159,18 +143,18 @@ L.Draw.Arc = L.Draw.Feature.extend({
    	.preventDefault(e.originalEvent);*/
         } else if (!this._radius) {
             const pc = this._map.project(this._startLatLng)
-            let ph = this._map.project(latlng)
-            let v = [ph.x - pc.x, ph.y - pc.y]
+            const ph = this._map.project(latlng)
+            const v = [ph.x - pc.x, ph.y - pc.y]
 
-            let newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
+            const newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
             this._startBearing = newB
             this._radius = this._startLatLng.distanceTo(latlng)
         } else {
             const _pc3 = this._map.project(this._startLatLng)
-            let _ph3 = this._map.project(latlng)
-            let _v3 = [_ph3.x - _pc3.x, _ph3.y - _pc3.y]
+            const _ph3 = this._map.project(latlng)
+            const _v3 = [_ph3.x - _pc3.x, _ph3.y - _pc3.y]
 
-            let _newB = Math.atan2(_v3[0], -_v3[1]) * 180 / Math.PI % 360
+            const _newB = Math.atan2(_v3[0], -_v3[1]) * 180 / Math.PI % 360
             this._endBearing = _newB
         }
     },
@@ -298,9 +282,9 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _createResizeMarker: function _createResizeMarker () {
         const center = this._shape.getCenter()
 
-        let bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
+        const bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
 
-        let point = this._shape.computeDestinationPoint(center, this._shape.getRadius(), bearing)
+        const point = this._shape.computeDestinationPoint(center, this._shape.getRadius(), bearing)
 
         this._resizeMarker = this._createMarker(point, this.options.resizeIcon)
     },
@@ -308,7 +292,7 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _createStartMarker: function _createStartMarker () {
         const center = this._shape.getCenter()
 
-        let point = this._shape.computeDestinationPoint(center, this._shape.getRadius(), this._shape.getStartBearing())
+        const point = this._shape.computeDestinationPoint(center, this._shape.getRadius(), this._shape.getStartBearing())
 
         this._startMarker = this._createMarker(point, this.options.startIcon)
     },
@@ -316,7 +300,7 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _createEndMarker: function _createEndMarker () {
         const center = this._shape.getCenter()
 
-        let point = this._shape.computeDestinationPoint(center, this._shape.getRadius(), this._shape.getEndBearing())
+        const point = this._shape.computeDestinationPoint(center, this._shape.getRadius(), this._shape.getEndBearing())
 
         this._endMarker = this._createMarker(point, this.options.endIcon)
     },
@@ -324,9 +308,9 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _createRotateMarker: function _createRotateMarker () {
         const center = this._shape.getCenter()
 
-        let bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
+        const bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
 
-        let point = this._shape.computeDestinationPoint(center, this._shape.getRadius() * 1.3, bearing)
+        const point = this._shape.computeDestinationPoint(center, this._shape.getRadius() * 1.3, bearing)
 
         this._rotateMarker = this._createMarker(point, this.options.rotateIcon)
     },
@@ -388,11 +372,11 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _restart: function _restart (latlng) {
         const moveLatLng = this._shape.getCenter()
 
-        let pc = this._map.project(moveLatLng)
-        let ph = this._map.project(latlng)
-        let v = [ph.x - pc.x, ph.y - pc.y]
+        const pc = this._map.project(moveLatLng)
+        const ph = this._map.project(latlng)
+        const v = [ph.x - pc.x, ph.y - pc.y]
 
-        let newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI
+        const newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI
 
         this._shape.setStartBearing(newB)
 
@@ -408,11 +392,11 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _end: function _end (latlng) {
         const moveLatLng = this._shape.getCenter()
 
-        let pc = this._map.project(moveLatLng)
-        let ph = this._map.project(latlng)
-        let v = [ph.x - pc.x, ph.y - pc.y]
+        const pc = this._map.project(moveLatLng)
+        const ph = this._map.project(latlng)
+        const v = [ph.x - pc.x, ph.y - pc.y]
 
-        let newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI
+        const newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI
         this._shape.setEndBearing(newB)
 
         this._shape.setLatLngs(this._shape.getLatLngs())
@@ -427,19 +411,19 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _rotate: function _rotate (latlng) {
         const moveLatLng = this._shape.getCenter()
 
-        let pc = this._map.project(moveLatLng)
-        let ph = this._map.project(latlng)
-        let v = [ph.x - pc.x, ph.y - pc.y]
+        const pc = this._map.project(moveLatLng)
+        const ph = this._map.project(latlng)
+        const v = [ph.x - pc.x, ph.y - pc.y]
 
-        let newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
-        let halfAngle = (this._shape.getEndBearing() - this._shape.getStartBearing()) / 2
+        const newB = Math.atan2(v[0], -v[1]) * 180 / Math.PI % 360
+        const halfAngle = (this._shape.getEndBearing() - this._shape.getStartBearing()) / 2
         /*let oldB = (this._shape.getStartBearing() + this._shape.getEndBearing()) / 2
   let angle = (this._shape.getEndBearing() - this._shape.getStartBearing())
   	let newStart = (newB - angle/2)% 360
   let newEnd = (newB + angle/2)% 360*/
 
-        let newStart = newB - halfAngle
-        let newEnd = newStart + 2 * halfAngle
+        const newStart = newB - halfAngle
+        const newEnd = newStart + 2 * halfAngle
 
         this._shape.setStartBearing(newStart)
         this._shape.setEndBearing(newEnd)
@@ -453,7 +437,7 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
 
     _repositionResizeMarker: function _repositionResizeMarker () {
         const bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
-        let point = this._shape.computeDestinationPoint(this._shape.getCenter(), this._shape.getRadius(), bearing)
+        const point = this._shape.computeDestinationPoint(this._shape.getCenter(), this._shape.getRadius(), bearing)
 
         this._resizeMarker.setLatLng(point)
     },
@@ -471,9 +455,9 @@ L.Edit.Arc = L.Edit.SimpleShape.extend({
     _repositionRotateMarker: function _repositionRotateMarker () {
         const center = this._shape.getCenter()
 
-        let bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
+        const bearing = (this._shape.getEndBearing() + this._shape.getStartBearing()) / 2
 
-        let point = this._shape.computeDestinationPoint(center, this._shape.getRadius() * 1.3, bearing)
+        const point = this._shape.computeDestinationPoint(center, this._shape.getRadius() * 1.3, bearing)
 
         this._rotateMarker.setLatLng(point)
     }
