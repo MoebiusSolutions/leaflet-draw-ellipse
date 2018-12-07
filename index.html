@@ -132,16 +132,20 @@
 
         function addEllipse(e) {
             const center = e.layer.getCenter()
-            const radii = e.layer.getRadii()
+            const semiMinor = e.layer.getSemiMinor()
+            const semiMajor = e.layer.getSemiMajor()
             const tilt = e.layer.getTilt()
-            let newEllipse = L.ellipse(center, radii, tilt,
-                {
-                    fill: true,
-                    fillColor: e.layer.options.fillColor,
-                    fillOpacity: e.layer.options.fillOpacity,
-                    color: e.layer.options.color,
-                    opacity: e.layer.options.opacity
-                }).on('dblclick', e => toggle(e, newEllipse))
+            let newEllipse = L.ellipse({
+                center,
+                semiMinor,
+                semiMajor,
+                tilt,
+                fill: true,
+                fillColor: e.layer.options.fillColor,
+                fillOpacity: e.layer.options.fillOpacity,
+                color: e.layer.options.color,
+                opacity: e.layer.options.opacity
+            }).on('dblclick', e => toggle(e, newEllipse))
 
             newEllipse.editing.enable()
 
@@ -175,11 +179,13 @@
             endBearing: 90
         }).on('dblclick', e => toggle(e, arc1))
 
-        let ellipse1 = L.ellipse(
-            { lat: -37.7772, lng: 175.2756 },
-            [800, 400],
-            30,
-            { color: 'green' }
+        let ellipse1 = L.ellipse({
+            center: [-37.7772, 175.2756],
+            semiMinor: 400,
+            semiMajor: 800,
+            tilt: 30,
+            color: 'green'
+        }
         ).on('dblclick', e => toggle(e, ellipse1))
         map.addLayer(ellipse1)
         map.addLayer(arc1)

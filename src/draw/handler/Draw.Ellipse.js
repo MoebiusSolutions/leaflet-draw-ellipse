@@ -24,7 +24,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         }
     },
 
-    initialize (map, options) {
+    initialize(map, options) {
         if (options && options.shapeOptions) {
             options.shapeOptions = L.Util.extend({}, this.options.shapeOptions, options.shapeOptions)
         }
@@ -39,7 +39,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         L.Draw.Feature.prototype.initialize.call(this, map, options)
     },
 
-    _computeBearing (latlng) {
+    _computeBearing(latlng) {
         const RAD_TO_DEG = 180 / Math.PI
         const pc = this._map.project(this._startLatLng)
         const ph = this._map.project(latlng)
@@ -48,21 +48,21 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         return bearing
     },
 
-    getDistance (p, q) {
+    getDistance(p, q) {
         return L.latLng(p).distanceTo(q)
     },
 
-    _drawShape (latlng) {
+    _drawShape(latlng) {
         let radius
         if (!this._shape) {
             this._radius = radius = Math.max(this._startLatLng.distanceTo(latlng), 10)
             this._bearing = this._computeBearing(latlng)
-            this._shape = L.ellipse(
-                this._startLatLng,
-                [radius, radius / 2],
-                this._bearing,
-                this.options.shapeOptions
-            )
+            this._shape = L.ellipse(_extends({
+                center: this._startLatLng,
+                semiMinor: radius / 2,
+                SemiMajor: radius,
+                tilt: this._bearing
+            }, this.options.shapeOptions))
             this._map.addLayer(this._shape)
 
         } else {
@@ -70,30 +70,35 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
             this._shape.setTilt(this._bearing)
 
             this._radius = radius = this.getDistance(this._startLatLng, latlng)
-            this._shape.setRadii([radius, radius / 2])
+            this._shape.setSemiMinor(radius / 2)
+            this._shape.setSemiMajor(radius)
             this._shape.setLatLngs()
         }
     },
 
 
-    _fireCreatedEvent (e) {
+    _fireCreatedEvent(e) {
         const radii = [this._shape._semiMajor, this._shape._semiMinor]
         const ellipse = L.ellipse(
-            this._startLatLng,
-            radii,
-            this._bearing,
-            this.options.shapeOptions
+            _extends({}, this.options.shapeOptions,
+                {
+                    center: this._startLatLng,
+                    semiMinor: this._shape._semiMinor,
+                    semiMajor: this._shape._semiMajor,
+                    tilt: this._bearing
+                }
+            )
         )
 
         L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, ellipse)
     },
 
-    _onMouseDown (e) {
+    _onMouseDown(e) {
         this._isDrawing = true
         this._startLatLng = e.latlng
     },
 
-    _onMouseMove (e) {
+    _onMouseMove(e) {
         const latlng = e.latlng
 
         if (this._isDrawing) {
@@ -106,7 +111,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         }
     },
 
-    _onMouseUp (e) {
+    _onMouseUp(e) {
         this._fireCreatedEvent(e)
 
         this.disable()
@@ -117,7 +122,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
     },
     // @method addHooks(): void
     // Add listener hooks to this handler.
-    addHooks () {
+    addHooks() {
         L.Draw.Feature.prototype.addHooks.call(this)
         if (this._map) {
             this._mapDraggable = this._map.dragging.enabled()
@@ -141,7 +146,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
     },
     // @method removeHooks(): void
     // Remove listener hooks from this handler.
-    removeHooks () {
+    removeHooks() {
         //L.Draw.Feature.prototype.removeHooks.call(this);
         if (this._map) {
             if (this._mapDraggable) {

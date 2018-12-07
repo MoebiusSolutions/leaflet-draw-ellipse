@@ -53,20 +53,31 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         if (!this._shape) {
             this._radius = radius = Math.max(this._startLatLng.distanceTo(latlng), 10);
             this._bearing = this._computeBearing(latlng);
-            this._shape = L.ellipse(this._startLatLng, [radius, radius / 2], this._bearing, this.options.shapeOptions);
+            this._shape = L.ellipse(_extends({
+                center: this._startLatLng,
+                semiMinor: radius / 2,
+                SemiMajor: radius,
+                tilt: this._bearing
+            }, this.options.shapeOptions));
             this._map.addLayer(this._shape);
         } else {
             this._bearing = this._computeBearing(latlng);
             this._shape.setTilt(this._bearing);
 
             this._radius = radius = this.getDistance(this._startLatLng, latlng);
-            this._shape.setRadii([radius, radius / 2]);
+            this._shape.setSemiMinor(radius / 2);
+            this._shape.setSemiMajor(radius);
             this._shape.setLatLngs();
         }
     },
     _fireCreatedEvent: function _fireCreatedEvent(e) {
         var radii = [this._shape._semiMajor, this._shape._semiMinor];
-        var ellipse = L.ellipse(this._startLatLng, radii, this._bearing, this.options.shapeOptions);
+        var ellipse = L.ellipse(_extends({}, this.options.shapeOptions, {
+            center: this._startLatLng,
+            semiMinor: this._shape._semiMinor,
+            semiMajor: this._shape._semiMajor,
+            tilt: this._bearing
+        }));
 
         L.Draw.SimpleShape.prototype._fireCreatedEvent.call(this, ellipse);
     },
