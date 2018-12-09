@@ -57,7 +57,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
             this._radius = radius = Math.max(this._startLatLng.distanceTo(latlng), 10)
             this._bearing = this._computeBearing(latlng)
             this._shape = L.ellipse({
-                center: this._startLatLng,
+                center: [this._startLatLng.lat, this._startLatLng.lng],
                 semiMinor: radius / 2,
                 SemiMajor: radius,
                 tilt: this._bearing,
@@ -76,12 +76,11 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
         }
     },
 
-
     _fireCreatedEvent (e) {
         const ellipse = L.ellipse(
             {
                 ...this.options.shapeOptions,
-                center: this._startLatLng,
+                center: [this._startLatLng.lat, this._startLatLng.lng],
                 semiMinor: this._shape._semiMinor,
                 semiMajor: this._shape._semiMajor,
                 tilt: this._bearing

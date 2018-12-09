@@ -68,7 +68,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
             this._radius = radius = Math.max(this._startLatLng.distanceTo(latlng), 10);
             this._bearing = this._computeBearing(latlng);
             this._shape = L.ellipse(_extends({
-                center: this._startLatLng,
+                center: [this._startLatLng.lat, this._startLatLng.lng],
                 semiMinor: radius / 2,
                 SemiMajor: radius,
                 tilt: this._bearing
@@ -86,7 +86,7 @@ L.Draw.Ellipse = L.Draw.Feature.extend({
     },
     _fireCreatedEvent: function _fireCreatedEvent(e) {
         var ellipse = L.ellipse(_extends({}, this.options.shapeOptions, {
-            center: this._startLatLng,
+            center: [this._startLatLng.lat, this._startLatLng.lng],
             semiMinor: this._shape._semiMinor,
             semiMajor: this._shape._semiMajor,
             tilt: this._bearing
@@ -308,7 +308,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
     },
     _move: function _move(latlng) {
         // Move the ellipse
-        this._shape.setCenter(latlng);
+        this._shape.setCenter([latlng.lat, latlng.lng]);
         this._shape.setLatLngs();
 
         // Move the resize marker

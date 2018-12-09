@@ -146,7 +146,7 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
 
     _move (latlng) {
         // Move the ellipse
-        this._shape.setCenter(latlng)
+        this._shape.setCenter([latlng.lat, latlng.lng])
         this._shape.setLatLngs()
 
         // Move the resize marker
