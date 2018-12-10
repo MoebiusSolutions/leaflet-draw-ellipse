@@ -62,10 +62,13 @@ L.Ellipse = L.Polygon.extend({
             semiMajor = _ref$semiMajor === undefined ? 200 : _ref$semiMajor,
             _ref$tilt = _ref.tilt,
             tilt = _ref$tilt === undefined ? 0 : _ref$tilt,
-            options = objectWithoutProperties(_ref, ['center', 'semiMinor', 'semiMajor', 'tilt']);
+            _ref$numberOfPoints = _ref.numberOfPoints,
+            numberOfPoints = _ref$numberOfPoints === undefined ? 61 : _ref$numberOfPoints,
+            options = objectWithoutProperties(_ref, ['center', 'semiMinor', 'semiMajor', 'tilt', 'numberOfPoints']);
 
-        this.setOptions(options).setCenter(center).setSemiMinor(semiMinor).setSemiMajor(semiMajor).setTilt(tilt).setNumberOfPoints(61).setStartBearing(0).setEndBearing(360);
+        this.setOptions(options).setCenter(center).setSemiMinor(semiMinor).setSemiMajor(semiMajor).setTilt(tilt).setNumberOfPoints(numberOfPoints);
         this.setLatLngs();
+        this.setRhumb();
     },
     setCenter: function setCenter() {
         var center = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { lat: 0, lng: 0 };
@@ -102,63 +105,6 @@ L.Ellipse = L.Polygon.extend({
     getTilt: function getTilt() {
         return this._tiltDeg;
     },
-    setStartBearing: function setStartBearing(brg) {
-        var startBearing = brg || 0;
-        /**
-         * Not sure how much of these checks are neccessary
-         * just using all as a temp fix for rotation problems.
-         */
-        var endBearing = this.getEndBearing() || 360;
-
-        while (startBearing < 0) {
-            startBearing += 360;
-        }
-        while (startBearing > 360) {
-            startBearing -= 360;
-        }
-
-        if (endBearing < startBearing) {
-            while (endBearing <= startBearing) {
-                startBearing = startBearing - 360;
-            }
-        }
-
-        this._startBearing = startBearing;
-        return this.redraw();
-    },
-    getStartBearing: function getStartBearing() {
-        return this._startBearing;
-    },
-    setEndBearing: function setEndBearing(brg) {
-        var endBearing = brg || 90;
-
-        /**
-         * Not sure how much of these checks are neccessary
-         * just using all as a temp fix for rotation problems.
-         */
-        var startBearing = this.getStartBearing() || 0;
-
-        while (endBearing < 0) {
-            endBearing += 360;
-        }
-        while (endBearing > 360) {
-            endBearing -= 360;
-        }
-
-        if (startBearing > endBearing) {
-            while (startBearing >= endBearing) {
-                endBearing += 360;
-            }
-        }
-
-        while (endBearing - startBearing > 360) {
-            endBearing -= 360;
-        }this._endBearing = endBearing;
-        return this.redraw();
-    },
-    getEndBearing: function getEndBearing() {
-        return this._endBearing;
-    },
     getNumberOfPoints: function getNumberOfPoints() {
         return this._numberOfPoints;
     },
@@ -191,21 +137,15 @@ L.Ellipse = L.Polygon.extend({
             y = void 0;
         var latlngs = [];
         var brg = wrapBrg(this.getTilt());
-        var start = wrapBrg(this.getStartBearing());
-        var diff = this.getEndBearing() - start;
-        if (diff < 0) {
-            diff += 360;
-        }
-        var delta = diff / (this._numberOfPoints - 1);
+        var delta = 360 / (this._numberOfPoints - 1);
 
         if (this._semiMinor === this._semiMajor) {
             brg = 0;
         }
 
-        var trueStart = wrapBrg(brg + start);
-        //start = wrapBrg(450 - start)
+        var trueStart = wrapBrg(brg);
         for (var i = 0; i < this._numberOfPoints; i++) {
-            angle = start + i * delta;
+            angle = i * delta;
             if (angle >= 360.0) {
                 angle -= 360.0;
             }
