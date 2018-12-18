@@ -285,8 +285,12 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         var pos = this.getMarkerPos(0);
         var p = this._map.project(pos);
         var c = this._map.project(this._shape.getCenter());
-        var dX = p.x >= c.x ? 20 : -20;
-        var dY = p.y <= c.y ? -20 : 20;
+        var dX = p.x - c.x;
+        var dY = p.y - c.y;
+        var len = Math.sqrt(dX * dX + dY * dY);
+        len = len === 0 ? 1 : len;
+        dX = 30 * dX / len;
+        dY = 30 * dY / len;
         return this._map.unproject([p.x + dX, p.y + dY]);
     },
     _onMarkerDragStart: function _onMarkerDragStart(e) {

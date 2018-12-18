@@ -120,8 +120,12 @@ L.Edit.Ellipse = L.Edit.SimpleShape.extend({
         const pos = this.getMarkerPos(0)
         const p = this._map.project(pos)
         const c = this._map.project(this._shape.getCenter())
-        const dX = (p.x >= c.x ? 20 : -20)
-        const dY = (p.y <= c.y ? -20 : 20)
+        let dX = (p.x - c.x)
+        let dY = (p.y - c.y)
+        let len = Math.sqrt(dX * dX + dY * dY)
+        len = (len === 0 ? 1 : len)
+        dX = 30 * dX / len
+        dY = 30 * dY / len
         return this._map.unproject([p.x + dX, p.y + dY])
     },
 
