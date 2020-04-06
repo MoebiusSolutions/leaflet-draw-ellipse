@@ -47,3 +47,10 @@ See [Leaflet.draw](https://github.com/Leaflet/Leaflet.draw#using) and [leaflet.e
 ## License
 
 This code is provided under the Apache 2.0 license.
+
+## Building
+
+```
+npm install
+npm run build
+```
