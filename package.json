@@ -27,7 +27,7 @@
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-latest": "^6.24.1",
-    "eslint": "^4.3.0",
+    "eslint": "^8.39.0",
     "geolib": "^2.0.22",
     "leaflet-ellipse": "^0.9.1",
     "rollup-plugin-babel": "^2.7.1",
